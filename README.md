@@ -1,10 +1,12 @@
 # TelemetryOps — AWS OpenTelemetry Observability Platform
 
+OpenTelemetry observability on AWS EC2 — Prometheus, Grafana, Jaeger
+
 A hands-on AWS observability portfolio project demonstrating how a distributed microservices application can be deployed on Amazon EC2 and observed with the OpenTelemetry ecosystem.
 
 > **Portfolio scope:** This repository documents my AWS deployment, Linux/Docker setup, troubleshooting, application validation, and observability learning. The demo application itself is based on the upstream OpenTelemetry Astronomy Shop project and is not claimed as original application code.
 
-## What I Built
+## What this project does
 
 I deployed the OpenTelemetry Astronomy Shop demo on an Ubuntu EC2 instance using Docker Compose and validated the application through its storefront and shopping-cart workflow.
 
@@ -21,7 +23,7 @@ The environment included:
 - kubectl
 - Git and GitHub
 
-## Architecture
+## Architecture / How it works
 
 ```text
 User
@@ -49,6 +51,45 @@ Prometheus           Jaeger
   v
 Grafana
 ```
+
+### Observability Components
+
+- **OpenTelemetry SDKs and Collector:** Collect and export metrics, traces, and telemetry from the Astronomy Shop microservices.
+- **Prometheus:** Collect and query metrics from the OpenTelemetry Collector.
+- **Grafana:** Visualize Prometheus metrics in dashboards.
+- **Jaeger:** Trace and visualize distributed request flows across the microservices.
+- **Docker Compose:** Run the OpenTelemetry demo stack, including the application, OpenTelemetry Collector, Prometheus, Grafana, and Jaeger.
+
+## Tech stack
+
+![AWS](https://img.shields.io/badge/AWS-%23232F3E.svg?style=for-the-badge&logo=amazonwebservices&logoColor=white)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-425CC7.svg?style=for-the-badge&logo=opentelemetry&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C.svg?style=for-the-badge&logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800.svg?style=for-the-badge&logo=grafana&logoColor=white)
+![Jaeger](https://img.shields.io/badge/Jaeger-66CFE3.svg?style=for-the-badge)
+![Docker](https://img.shields.io/badge/Docker-%232496ED.svg?style=for-the-badge&logo=docker&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-%237B42BC.svg?style=for-the-badge&logo=terraform&logoColor=white)
+![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420.svg?style=for-the-badge&logo=ubuntu&logoColor=white)
+
+## Repository structure
+
+```text
+.
+├── README.md
+└── docs/images/
+    ├── opentelemetry-demo-home.jpg
+    └── shopping-cart.jpg
+```
+
+This repository is documentation for the lab: it contains this README and the two screenshots in `docs/images/`. The demo application and observability stack itself were run from the upstream OpenTelemetry Astronomy Shop project with Docker Compose on the EC2 instance.
+
+## Key work demonstrated
+
+- Deployed the OpenTelemetry Astronomy Shop demo on an Ubuntu EC2 instance with Docker Compose, and validated it through the storefront and shopping-cart workflow.
+- Diagnosed a Docker image pull failure (`no space left on device`) with `df -h`, `lsblk`, and `docker system df`, and fixed it by increasing the EC2 EBS volume to 30 GiB and inspecting the partition layout.
+- Corrected the SSH login username after an initial SSH connection failure, and verified `kubectl` and the Terraform CLI after installing them.
+- Confirmed the observability path in practice: metrics to Prometheus and Grafana, and traces to Jaeger, from the OpenTelemetry Collector.
+- Terminated the temporary EC2 environment after testing to avoid unnecessary cloud cost and exposure.
 
 ## AWS Implementation
 
@@ -83,102 +124,54 @@ lsblk
 docker system df
 ```
 
-The issue was caused by the large number of Docker image layers required by the microservices and observability stack. The backing EBS volume was expanded to provide additional storage capacity.
+I identified low disk capacity as the cause and increased the EC2 EBS volume to 30 GiB.
 
-Other troubleshooting included:
-
-- Correcting the EC2 SSH username from `ec2-user` to `ubuntu` for the Ubuntu AMI.
-- Verifying the `kubectl` binary checksum before installation.
-- Distinguishing Windows PowerShell commands from Linux commands inside the SSH session.
-- Recognizing that `kubectl` reporting `localhost:8080 refused` indicated no Kubernetes cluster context was configured yet, rather than a failed kubectl installation.
+I also corrected the SSH login username after an initial SSH connection failure.
 
 ## Application Validation
 
-The application was successfully reachable from AWS and this user flow was validated:
+- Confirmed the OpenTelemetry Astronomy Shop storefront loaded successfully.
+- Added an item to the shopping cart.
+- Confirmed that the storefront and shopping-cart workflow operated correctly.
 
-```text
-Storefront -> Product -> Shopping Cart
-```
+## Project Screenshots
 
-This demonstrated that the containerized application stack was running and that multiple services were participating in the request flow.
+### OpenTelemetry Astronomy Shop Storefront
 
-### OpenTelemetry Storefront on AWS
+![OpenTelemetry Astronomy Shop storefront](docs/images/opentelemetry-demo-home.jpg)
 
-![OpenTelemetry Astronomy Shop running on AWS EC2](https://raw.githubusercontent.com/Arjun99git/telemetryops-aws-opentelemetry/main/docs/images/opentelemetry-demo-home.jpg)
+### Shopping Cart
 
-### Shopping Cart Workflow
-
-![Shopping cart workflow validated on AWS EC2](https://raw.githubusercontent.com/Arjun99git/telemetryops-aws-opentelemetry/main/docs/images/shopping-cart.jpg)
-
-## Observability Components
-
-### OpenTelemetry Collector
-Receives, processes, and exports telemetry produced by instrumented services.
-
-### Prometheus
-Provides metrics collection and querying.
-
-### Grafana
-Provides dashboards and visualization for operational and application metrics.
-
-### Jaeger
-Provides distributed tracing for investigating request paths across microservices.
+![OpenTelemetry Astronomy Shop shopping cart](docs/images/shopping-cart.jpg)
 
 ## Security Practices
 
-This was a temporary portfolio lab, not a production environment.
-
-- SSH key-based EC2 access.
-- No private keys committed to GitHub.
-- No AWS passwords, access keys, or credential files stored in this repository.
-- No claim that the temporary HTTP endpoint was production-secure.
-- Temporary infrastructure was terminated after validation.
-- Future AWS integrations should use IAM roles and least-privilege permissions instead of long-lived credentials.
+- Used SSH key-based authentication.
+- Terminated temporary EC2 resources after testing.
+- Avoided exposing production credentials.
+- Kept this documentation limited to public deployment, troubleshooting, and validation details.
 
 ## Useful Validation Commands
 
 ```bash
-# Docker
-docker --version
-docker compose version
 docker compose ps
-docker ps
-
-# Terraform
-terraform version
-
-# Kubernetes client
-kubectl version --client
-
-# Linux storage
-df -h
-lsblk
-
-# Docker storage
-docker system df
+docker compose logs
+curl -I http://localhost:8080
 ```
 
 ## Next Enhancements
 
-- Capture Jaeger distributed traces.
-- Add Grafana dashboards for request rate, errors, and latency.
-- Document RED metrics: Rate, Errors, and Duration.
-- Add OpenTelemetry log collection.
-- Add alerting rules.
-- Provision AWS infrastructure with Terraform.
-- Deploy the application to Amazon EKS.
-- Implement GitOps with Argo CD and Helm.
-- Add HTTPS/TLS through a load balancer or ingress.
-- Use least-privilege IAM roles for AWS integrations.
-- Add CloudWatch integration.
-- Correlate deployments with traces and metrics.
+- Add Terraform configuration to provision the EC2 instance and security group.
+- Add Grafana and Prometheus dashboard screenshots.
+- Add Jaeger trace screenshots.
+- Add architecture diagrams.
+- Add a cost and cleanup section.
+- Add instructions for running the demo on Amazon EKS.
 
 ## Attribution
 
-This portfolio project uses the OpenTelemetry Demo ecosystem as its application foundation.
-
-- OpenTelemetry Demo: https://github.com/open-telemetry/opentelemetry-demo
-- OpenTelemetry Demo documentation: https://opentelemetry.io/docs/demo/
-- Deployment-learning reference used during the lab: https://github.com/iam-veeramalla/ultimate-devops-project-demo
-
-The upstream source remains subject to its applicable open-source license terms.
+- OpenTelemetry Astronomy Shop: [open-telemetry/opentelemetry-demo](https://github.com/open-telemetry/opentelemetry-demo)
+- OpenTelemetry: [opentelemetry.io](https://opentelemetry.io)
+- Prometheus: [prometheus.io](https://prometheus.io)
+- Grafana: [grafana.com](https://grafana.com)
+- Jaeger: [jaegertracing.io](https://www.jaegertracing.io)
